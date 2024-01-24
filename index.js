@@ -1,7 +1,5 @@
 const express = require("express");
 const app = express();
-// const session = require('express-session');
-// const userForm = require("./controller/userForm");
 const cookies = require("cookie-parser");
 
 const dotenv = require("dotenv");
