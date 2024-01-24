@@ -1,0 +1,25 @@
+// Order details
+const orderDetails = tryCatch(async (req, res) => {
+  const userDetails = await User.find();
+
+  let allOrders = [];
+
+  userDetails.forEach((user) => {
+    user.order.forEach((order) => {
+      // Include user details in each order
+      const orderWithUser = {
+        userId: user._id,
+        username: user.username, // You can include other user details as needed
+        orderDetails: order,
+      };
+
+      allOrders.push(orderWithUser);
+    });
+  });
+
+  res.json({
+    success: true,
+    message: "User order details retrieved successfully.",
+    data: allOrders,
+  });
+});
