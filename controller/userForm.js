@@ -187,31 +187,37 @@ const productsCategory = tryCatch(async (req, res) => {
   }
 });
 
-// add product to the user cart
-
+// add product to cart
 const cartAdding = tryCatch(async (req, res) => {
   const { id: userid } = req.params;
-  // console.log(userid);
-
   const addProduct = await productModel.findById(req.body._id);
   const checkUser = await User.findById(userid);
 
-  if (!addProduct && !checkUser) {
-    res.status(404).json({
+  if (!addProduct || !checkUser) {
+    return res.status(404).json({
       success: false,
-      message: "User id or may product id get inccorrect",
+      message: "User id or product id is incorrect",
     });
-  } else {
-    const isExist = checkUser.cart.find((item) => item._id == req.body._id);
-
-    if (isExist) {
-      res.status(404).send("item is already in cart");
-    } else {
-      checkUser.cart.push(addProduct);
-      await checkUser.save();
-      res.status(201).json(checkUser);
-    }
   }
+
+  // Check if the product already exists in the cart
+  const existingProduct = checkUser.cart.find(
+    (item) => item._id == req.body._id
+  );
+
+  if (existingProduct) {
+    // If the product exists, increment the quantity
+    existingProduct.quantity = (existingProduct.quantity || 1) + 1;
+  } else {
+    // If the product doesn't exist, add it to the cart with quantity 1
+    checkUser.cart.push({
+      ...addProduct.toObject(),
+      quantity: 1,
+    });
+  }
+
+  await checkUser.save();
+  res.status(201).json(checkUser);
 });
 
 // view product from cart
@@ -430,9 +436,10 @@ const payment = tryCatch(async function (req, res) {
     .reduce((accumulator, product) => {
       return accumulator + product.price;
     }, 0)
-    .toFixed(2);
-
-  if (totalPrice == amount) {
+  console.log("Total Price:", totalPrice);
+  console.log("amount: ", amount);
+  
+  if (totalPrice === amount) {
     const options = {
       amount: amount * 100,
       currency: "INR",

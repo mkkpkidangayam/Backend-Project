@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const joi = require("joi");
+const moment = require("moment-timezone");
 
 const userSchema = new mongoose.Schema(
   {
@@ -30,6 +31,8 @@ const userSchema = new mongoose.Schema(
     wishlist: Array,
     cart: Array,
     order: Array,
+    createdAt: String,
+    updatedAt: String,
   },
   {
     timestamps: true,
@@ -52,10 +55,12 @@ function validateUser(user) {
 // Password hashing
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) {
-    return next();
   }
-
   this.password = await bcrypt.hash(this.password, 10);
+  const nowIST = moment().tz("Asia/Kolkata").format("YYYY-MM-DDTHH:mm:ss.SSSZ");
+  this.createdAt = this.createdAt || nowIST;
+  this.updatedAt = nowIST;
+  return next();
 });
 
 const User = mongoose.model("User", userSchema);
@@ -64,5 +69,3 @@ module.exports = {
   User,
   validateUser: validateUser,
 };
-
-// module.exports = { user: mongoose.model("User", userSchema), validateUser };

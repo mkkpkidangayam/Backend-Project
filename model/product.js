@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
+const moment = require("moment-timezone");
 
 const productSchema = new Schema(
   {
@@ -11,7 +12,6 @@ const productSchema = new Schema(
     },
     description: {
       type: String,
-      // required: [true, "Description is required"],
       maxlength: [100, "Description cannot exceed 100 characters"],
     },
     price: {
@@ -28,10 +28,18 @@ const productSchema = new Schema(
       required: [true, "Category is required"],
       enum: ["men", "women", "phone"],
     },
+    createdAt: String,
+    updatedAt: String,
   },
   {
     timestamps: true,
   }
 );
+productSchema.pre("save", async function (next) {
+  const nowIST = moment().tz("Asia/Kolkata").format("YYYY-MM-DDTHH:mm:ss.SSSZ");
+  this.createdAt = this.createdAt || nowIST;
+  this.updatedAt = nowIST;
+  return next();
+});
 
 module.exports = mongoose.model("products", productSchema);

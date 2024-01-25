@@ -1,0 +1,55 @@
+const payment = tryCatch(async function (req, res) {
+  const userId = req.params.id;
+  const amount = req.body.id;
+
+  const userCheck = await userModel.findById(userId);
+
+  const razorpay = new Razorpay({
+    key_id: process.env.keyid,
+    key_secret: process.env.key_secret,
+  });
+
+  if (!userCheck) {
+    return res.status(404).json({
+      success: false,
+      message: "user not valid",
+    });
+  }
+
+  const { cart } = userCheck;
+
+  if (cart.length === 0) {
+    return res.status(404).json({
+      success: false,
+      message: "you have to add product to cart",
+    });
+  }
+  const totalPrice = cart
+    .reduce((accumulator, product) => {
+      return accumulator + product.price;
+    }, 0)
+    .toFixed(2);
+
+  if (totalPrice == amount) {
+    const options = {
+      amount: amount * 100,
+      currency: "INR",
+      receipt: "order_rcptid_11",
+    };
+
+    const order = await razorpay.orders.create(options);
+
+    userCheck.orders = userCheck.cart;
+    //userCheck.cart = [];
+    await userCheck.save();
+
+    return res.status(200).json({
+      success: true,
+      message: `you succesfully payed ${totalPrice}`,
+      order,
+      data: cart,
+    });
+  } else {
+    res.status(400).send("enter corrent amount");
+  }
+});
