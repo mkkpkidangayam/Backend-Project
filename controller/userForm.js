@@ -202,7 +202,7 @@ const cartAdding = tryCatch(async (req, res) => {
 
   // Check if the product already exists in the cart
   const existingProduct = checkUser.cart.find(
-    (item) => item._id == req.body._id
+    (item) => item._id === req.body._id
   );
 
   if (existingProduct) {

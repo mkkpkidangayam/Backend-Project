@@ -18,7 +18,8 @@ const adminLogin = tryCatch(async (req, res) => {
     password === adminCredentials.password;
 
   if (isValidCredentials) {
-    const token = signToken({ isAdmin: true });
+    // Assuming you have a user ID for the admin, replace 'adminUserId' with the actual user ID
+    const token = await signToken('adminUserId');
     res.status(202).cookie("adminToken", token).json({
       success: true,
       message: "Login successful",
